@@ -100,7 +100,8 @@ int main(int argc , char *argv[])
 				fprintf(stdout,"bytes of file sent: %d\n",prog1);
 				sleep(2);	
 			}	
-
+		fclose(fp);
+		
 		/* receive filename and progress from the FTP server */
 		fprintf(stdout,"Waiting for response from server\n");
 		if((ret=recvfrom(sock_fd,&ob,sizeof(ob),0,(struct sockaddr*)&srvr_addr,&st))<=0)
@@ -123,7 +124,6 @@ int main(int argc , char *argv[])
       	{
 		fprintf(stdout,"File doesn't exist\n");
  	}
-	fclose(fp);
 }
 
 /*
