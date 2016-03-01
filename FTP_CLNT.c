@@ -123,7 +123,7 @@ int main(int argc , char *argv[])
       	{
 		fprintf(stdout,"File doesn't exist\n");
  	}
-	close(fp);
+	fclose(fp);
 }
 
 /*
