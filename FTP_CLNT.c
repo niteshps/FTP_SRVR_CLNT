@@ -42,7 +42,7 @@ int main(int argc , char *argv[])
 	memset(dif.filename,0,sizeof(dif.filename));
 	memset(dif.data,0,sizeof(dif.data));
 	struct sockaddr_in srvr_addr;
-	
+
 	/* check if file exists or not */
 	if(chk_file_existence(argv[2]))
 	{
@@ -55,7 +55,7 @@ int main(int argc , char *argv[])
 		/* create file transfer client listener for communication */
 		sock_fd=socket(AF_INET,SOCK_DGRAM,0);
 		if (sock_fd==-1)
-		fprintf(stdout,"socket error\n");
+			fprintf(stdout,"socket error\n");
 
 		/* create named socket for accepting connections from UI */
 		srvr_addr.sin_family=AF_INET;
@@ -67,10 +67,10 @@ int main(int argc , char *argv[])
 
 		/* count total number of lines in file */
 		while(fgets(buff,CHUNK,fp)!=NULL)
-			{
-				i++;
-				t_size+=strlen(buff);
-			}
+		{
+			i++;
+			t_size+=strlen(buff);
+		}
 		fprintf(stdout,"\ntotal size:%d Bytes\n",t_size);
 		fprintf(stdout,"total lines %d\n",i);
 		dif.nol=i;
@@ -79,10 +79,10 @@ int main(int argc , char *argv[])
 		/* send filename and nos of lines to server */
 		sendto(sock_fd,&dif,sizeof(dif),0,(struct sockaddr*)&srvr_addr,st);
 		if((ret=recvfrom(sock_fd,&dif.id,sizeof(dif.id),0,(struct sockaddr*)&srvr_addr,&st))<=0)
-			{
-				fprintf(stdout,"Failed to receive id:[%s]\n",strerror(errno));
-				exit(0);
-			}
+		{
+			fprintf(stdout,"Failed to receive id:[%s]\n",strerror(errno));
+			exit(0);
+		}
 		fprintf(stdout,"Filename:\t%s\n",argv[2]);	
 		fseek(fp,0,SEEK_SET);
 		dif.thread=0;
@@ -90,40 +90,40 @@ int main(int argc , char *argv[])
 		/* send data of file in chunks to FTP server */
 		fprintf(stdout,"*********sending data to server*********\n");
 		while(fgets(dif.data,CHUNK,fp)!=NULL)
-			{
-				prog1+=strlen(dif.data);
-				if((sendto(sock_fd,&dif,sizeof(dif),0,(struct sockaddr*)&srvr_addr,st))<0)
-					{		
-						fprintf(stdout,"\tERROR:[%s]\n",strerror(errno));
-						exit(0);
-					}
-				fprintf(stdout,"bytes of file sent: %d\n",prog1);
-				sleep(2);	
-			}	
+		{
+			prog1+=strlen(dif.data);
+			if((sendto(sock_fd,&dif,sizeof(dif),0,(struct sockaddr*)&srvr_addr,st))<0)
+			{		
+				fprintf(stdout,"\tERROR:[%s]\n",strerror(errno));
+				exit(0);
+			}
+			fprintf(stdout,"bytes of file sent: %d\n",prog1);
+			sleep(2);	
+		}	
 		fclose(fp);
-		
+
 		/* receive filename and progress from the FTP server */
 		fprintf(stdout,"Waiting for response from server\n");
 		if((ret=recvfrom(sock_fd,&ob,sizeof(ob),0,(struct sockaddr*)&srvr_addr,&st))<=0)
-			{
-				fprintf(stdout,"Failed to receive filename:[%s]\n",strerror(errno));
-				exit(0);
-			}
+		{
+			fprintf(stdout,"Failed to receive filename:[%s]\n",strerror(errno));
+			exit(0);
+		}
 		f_len=strlen(ob.filename_mod);
 		ob.filename_mod[f_len]='\0';
 		fprintf(stdout,"Filename at servr:\t%s\nProgress at server:\t%d bytes\n",ob.filename_mod,ob.prog);
 		close(sock_fd);
 		if(ob.prog==prog1)
-			{
-				fprintf(stdout,"*********file transfer successful*********\n");
-			}
+		{
+			fprintf(stdout,"*********file transfer successful*********\n");
+		}
 		else
 			fprintf(stdout,"Sorry, file is not sent completely!!!\n");
-      } 
-      else
-      	{
+	} 
+	else
+	{
 		fprintf(stdout,"File doesn't exist\n");
- 	}
+	}
 }
 
 /*
@@ -135,14 +135,43 @@ int main(int argc , char *argv[])
  */
 int chk_file_existence(char *file)
 {	
-	int status=0;
+	int status=0,k,l=0,dot=0;
+	char filename[32],ar2[3];
+	strcpy(filename,file);
 	struct stat pstat;
-	if(!(lstat(file,&pstat)))
+
+	for(k=0;filename[k]!='\0';k++)
+	{
+		if(filename[k]=='.')
 		{
-			if(S_ISREG(pstat.st_mode))
-				{
-					status=1;
-				}
+			dot=k;
+			break;
 		}
+	}
+	for(k=dot;filename[k]!='\0';k++)
+	{
+		if(k>dot)
+		{
+			ar2[l]=filename[k];
+			l++;
+		}
+	}
+	ar2[l]='\0';
+	if(strcmp(ar2,"txt"))
+	{	printf("invalid filename, send text(.txt) files only\n");
+		exit(0);
+	}
+	if(dot==0)
+	{	printf("invalid filename, send text(.txt) files only\n");
+		exit(0);
+	}	
+
+	if(!(lstat(file,&pstat)))
+	{
+		if(S_ISREG(pstat.st_mode))
+		{
+			status=1;
+		}
+	}
 	return status;
 }
