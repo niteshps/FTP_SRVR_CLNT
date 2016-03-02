@@ -158,11 +158,11 @@ int chk_file_existence(char *file)
 	}
 	ar2[l]='\0';
 	if(strcmp(ar2,"txt"))
-	{	printf("invalid filename, send text(.txt) files only\n");
+	{	fprintf(stdout,"invalid filename, send text(.txt) files only\n");
 		exit(0);
 	}
 	if(dot==0)
-	{	printf("invalid filename, send text(.txt) files only\n");
+	{	fprintf(stdout,"invalid filename, send text(.txt) files only\n");
 		exit(0);
 	}	
 
